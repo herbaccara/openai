@@ -101,6 +101,24 @@ class OpenAiServiceTest {
     }
 
     @Test
+    fun files() {
+        val result = openAiService.files()
+        println()
+    }
+
+    @Test
+    fun uploadFiles() {
+        val form = UploadFileForm(
+            File("src/test/resources/test-fine-tuning-data.jsonl"),
+            "테스트 파인 튜닝 데이터"
+        )
+        val uploadFiles = openAiService.uploadFile(form)
+        println()
+    }
+
+    // Fine-tunes
+
+    @Test
     fun moderation() {
         val form = ModerationForm(
             "I want to kill them."
