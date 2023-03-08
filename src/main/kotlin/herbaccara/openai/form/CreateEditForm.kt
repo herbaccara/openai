@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class EditForm @JvmOverloads constructor(
+data class CreateEditForm @JvmOverloads constructor(
     val model: String,
     val input: String? = null,
     val instruction: String,

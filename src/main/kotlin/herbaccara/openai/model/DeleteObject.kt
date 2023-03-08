@@ -1,9 +1,10 @@
-package herbaccara.openai.model.file
+package herbaccara.openai.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class FileResult(
+data class DeleteObject(
+    val id: String,
     @field:JsonProperty("object")
     val `object`: String,
-    val data: List<File>
+    val deleted: Boolean
 )

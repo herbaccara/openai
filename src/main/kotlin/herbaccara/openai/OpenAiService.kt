@@ -1,17 +1,19 @@
 package herbaccara.openai
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import herbaccara.openai.form.*
-import herbaccara.openai.model.audio.AudioResult
+import herbaccara.openai.model.DeleteObject
 import herbaccara.openai.model.chat.completion.ChatCompletion
 import herbaccara.openai.model.completion.Completion
 import herbaccara.openai.model.edit.Edit
 import herbaccara.openai.model.embedding.EmbeddingResult
-import herbaccara.openai.model.file.DeleteFile
 import herbaccara.openai.model.file.File
-import herbaccara.openai.model.file.FileResult
+import herbaccara.openai.model.finetune.Event
+import herbaccara.openai.model.finetune.FineTune
 import herbaccara.openai.model.image.ImageResult
 import herbaccara.openai.model.model.Model
-import herbaccara.openai.model.model.ModelResult
 import herbaccara.openai.model.moderation.ModerationResult
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpEntity
@@ -25,39 +27,43 @@ import org.springframework.web.client.getForObject
 import org.springframework.web.client.postForObject
 
 class OpenAiService(
-    private val restTemplate: RestTemplate
+    private val restTemplate: RestTemplate,
+    private val objectMapper: ObjectMapper
 ) {
-    fun models(): ModelResult {
+    fun listModels(): List<Model> {
         val uri = "/v1/models"
-        return restTemplate.getForObject(uri)
+
+        val json = restTemplate.getForObject<JsonNode>(uri)
+
+        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<Model>>() {})
     }
 
-    fun model(model: String): Model {
+    fun retrieveModel(model: String): Model {
         val uri = "/v1/models/$model"
         return restTemplate.getForObject(uri)
     }
 
-    fun completion(form: CompletionForm): Completion {
+    fun createCompletion(form: CreateCompletionForm): Completion {
         val uri = "/v1/completions"
         return restTemplate.postForObject(uri, form)
     }
 
-    fun chatCompletion(form: ChatCompletionForm): ChatCompletion {
+    fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
         val uri = "/v1/chat/completions"
         return restTemplate.postForObject(uri, form)
     }
 
-    fun edit(form: EditForm): Edit {
+    fun createEdit(form: CreateEditForm): Edit {
         val uri = "/v1/edits"
         return restTemplate.postForObject(uri, form)
     }
 
-    fun imageGeneration(form: ImageGenerationForm): ImageResult {
+    fun createImage(form: CreateImageForm): ImageResult {
         val uri = "/v1/images/generations"
         return restTemplate.postForObject(uri, form)
     }
 
-    fun imageEdit(form: ImageEditForm): ImageResult {
+    fun createImageEdit(form: CreateImageEditForm): ImageResult {
         val uri = "/v1/images/edits"
 
         val headers = HttpHeaders().apply {
@@ -89,7 +95,7 @@ class OpenAiService(
         return restTemplate.postForObject(uri, httpEntity)
     }
 
-    fun imageVariation(form: ImageVariationForm): ImageResult {
+    fun createImageVariation(form: CreateImageVariationForm): ImageResult {
         val uri = "/v1/images/variations"
 
         val headers = HttpHeaders().apply {
@@ -117,12 +123,12 @@ class OpenAiService(
         return restTemplate.postForObject(uri, httpEntity)
     }
 
-    fun embedding(form: EmbeddingForm): EmbeddingResult {
+    fun createEmbedding(form: CreateEmbeddingForm): EmbeddingResult {
         val uri = "/v1/embeddings"
         return restTemplate.postForObject(uri, form)
     }
 
-    fun audioTranscription(form: AudioTranscriptionForm): AudioResult {
+    fun createTranscription(form: CreateTranscriptionForm): String {
         val uri = "/v1/audio/transcriptions"
 
         val headers = HttpHeaders().apply {
@@ -148,10 +154,11 @@ class OpenAiService(
 
         val httpEntity = HttpEntity(body, headers)
 
-        return restTemplate.postForObject(uri, httpEntity)
+        val json = restTemplate.postForObject<JsonNode>(uri, httpEntity)
+        return json["text"].asText()
     }
 
-    fun audioTranslation(form: AudioTranslationForm): AudioResult {
+    fun createTranslation(form: CreateTranslationForm): String {
         val uri = "/v1/audio/translations"
 
         val headers = HttpHeaders().apply {
@@ -174,13 +181,16 @@ class OpenAiService(
 
         val httpEntity = HttpEntity(body, headers)
 
-        return restTemplate.postForObject(uri, httpEntity)
+        val json = restTemplate.postForObject<JsonNode>(uri, httpEntity)
+        return json["text"].asText()
     }
 
-    fun files(): FileResult {
+    fun listFiles(): List<File> {
         val uri = "/v1/files"
 
-        return restTemplate.getForObject(uri)
+        val json = restTemplate.getForObject<JsonNode>(uri)
+
+        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<File>>() {})
     }
 
     fun uploadFile(form: UploadFileForm): File {
@@ -200,10 +210,10 @@ class OpenAiService(
         return restTemplate.postForObject(uri, httpEntity)
     }
 
-    fun deleteFile(fileId: String): DeleteFile {
+    fun deleteFile(fileId: String): DeleteObject {
         val uri = "/v1/files/$fileId"
 
-        return restTemplate.exchange<DeleteFile>(uri, HttpMethod.DELETE, HttpEntity.EMPTY).body!!
+        return restTemplate.exchange<DeleteObject>(uri, HttpMethod.DELETE, HttpEntity.EMPTY).body!!
     }
 
     fun retrieveFile(fileId: String): File {
@@ -218,9 +228,47 @@ class OpenAiService(
         return restTemplate.getForObject(uri)
     }
 
-    // Fine-tunes
+    fun createFineTune(form: CreateFineTuneForm): FineTune {
+        val uri = "/v1/fine-tunes"
 
-    fun moderation(form: ModerationForm): ModerationResult {
+        return restTemplate.postForObject(uri, form)
+    }
+
+    fun listFineTunes(): List<FineTune> {
+        val uri = "/v1/fine-tunes"
+
+        val json = restTemplate.getForObject<JsonNode>(uri)
+
+        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<FineTune>>() {})
+    }
+
+    fun retrieveFineTune(fineTuneId: String): FineTune {
+        val uri = "/v1/fine-tunes/${fineTuneId}"
+
+        return restTemplate.getForObject(uri)
+    }
+
+    fun cancelFineTune(fineTuneId: String): FineTune {
+        val uri = "/v1/fine-tunes/${fineTuneId}/cancel"
+
+        return restTemplate.postForObject(uri)
+    }
+
+    fun listFineTuneEvents(fineTuneId: String): List<Event> {
+        val uri = "/v1/fine-tunes/${fineTuneId}/events"
+
+        val json = restTemplate.getForObject<JsonNode>(uri)
+
+        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<Event>>() {})
+    }
+
+    fun deleteFineTuneModel(model: String): DeleteObject {
+        val uri = "/v1/models/$model"
+
+        return restTemplate.exchange<DeleteObject>(uri, HttpMethod.DELETE, HttpEntity.EMPTY).body!!
+    }
+
+    fun createModeration(form: CreateModerationForm): ModerationResult {
         val uri = "/v1/moderations"
 
         return restTemplate.postForObject(uri, form)

@@ -22,87 +22,87 @@ class OpenAiServiceTest {
 
     @Test
     fun models() {
-        val result = openAiService.models()
+        val result = openAiService.listModels()
         println(result)
     }
 
     @Test
     fun model() {
-        val model = openAiService.model("text-davinci-003")
+        val model = openAiService.retrieveModel("text-davinci-003")
         println(model)
     }
 
     @Test
     fun completion() {
-        val form = CompletionForm("text-davinci-003", "Say this is a test", maxTokens = 7, temperature = 0)
-        val completion = openAiService.completion(form)
+        val form = CreateCompletionForm("text-davinci-003", "Say this is a test", maxTokens = 7, temperature = 0)
+        val completion = openAiService.createCompletion(form)
         println(completion)
     }
 
     @Test
     fun chatCompletion() {
-        val form = ChatCompletionForm("gpt-3.5-turbo", listOf(Message("user", "hello")))
-        val chatCompletion = openAiService.chatCompletion(form)
+        val form = CreateChatCompletionForm("gpt-3.5-turbo", listOf(Message("user", "hello")))
+        val chatCompletion = openAiService.createChatCompletion(form)
         println()
     }
 
     @Test
     fun edit() {
-        val form = EditForm("text-davinci-edit-001", "What day of the wek is it?", "Fix the spelling mistakes")
-        val edit = openAiService.edit(form)
+        val form = CreateEditForm("text-davinci-edit-001", "What day of the wek is it?", "Fix the spelling mistakes")
+        val edit = openAiService.createEdit(form)
         println()
     }
 
     @Test
     fun imageGenerationUrl() {
-        val form = ImageGenerationForm("A cute baby sea otter", n = 2, size = "1024x1024", responseFormat = ImageResponseFormat.url)
-        val result = openAiService.imageGeneration(form)
+        val form = CreateImageForm("A cute baby sea otter", n = 2, size = "1024x1024", responseFormat = ImageResponseFormat.url)
+        val result = openAiService.createImage(form)
         println()
     }
 
     @Test
     fun imageGenerationB64() {
-        val form = ImageGenerationForm("A cute baby sea otter", n = 2, size = "1024x1024", responseFormat = ImageResponseFormat.b64_json)
-        val result = openAiService.imageGeneration(form)
+        val form = CreateImageForm("A cute baby sea otter", n = 2, size = "1024x1024", responseFormat = ImageResponseFormat.b64_json)
+        val result = openAiService.createImage(form)
         println()
     }
 
     @Test
     fun imageEdit() {
-        val form = ImageEditForm(
+        val form = CreateImageEditForm(
             image = File("src/test/resources/apple.png"),
             prompt = "A cute baby sea otter wearing a beret",
             n = 2,
             size = "1024x1024"
         )
-        val result = openAiService.imageEdit(form)
+        val result = openAiService.createImageEdit(form)
         println()
     }
 
     @Test
     fun imageVariation() {
-        val form = ImageVariationForm(
+        val form = CreateImageVariationForm(
             image = File("src/test/resources/apple.png"),
             n = 2,
             size = "1024x1024"
         )
-        val result = openAiService.imageVariation(form)
+        val result = openAiService.createImageVariation(form)
         println()
     }
 
     @Test
     fun embedding() {
-        val form = EmbeddingForm(
+        val form = CreateEmbeddingForm(
             "text-embedding-ada-002",
             "The food was delicious and the waiter..."
         )
-        val result = openAiService.embedding(form)
+        val result = openAiService.createEmbedding(form)
         println()
     }
 
     @Test
     fun files() {
-        val result = openAiService.files()
+        val result = openAiService.listFiles()
         println()
     }
 
@@ -119,11 +119,17 @@ class OpenAiServiceTest {
     // Fine-tunes
 
     @Test
+    fun fineTunes() {
+        val fineTunes = openAiService.listFineTunes()
+        println()
+    }
+
+    @Test
     fun moderation() {
-        val form = ModerationForm(
+        val form = CreateModerationForm(
             "I want to kill them."
         )
-        val result = openAiService.moderation(form)
+        val result = openAiService.createModeration(form)
         println()
     }
 }

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import herbaccara.openai.model.Message
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class ChatCompletionForm @JvmOverloads constructor(
+data class CreateChatCompletionForm @JvmOverloads constructor(
     val model: String,
     val messages: List<Message>,
     val temperature: Int? = null,

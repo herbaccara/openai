@@ -62,6 +62,6 @@ class OpenAiAutoConfiguration {
             }
             .build()
 
-        return OpenAiService(restTemplate)
+        return OpenAiService(restTemplate, objectMapper)
     }
 }

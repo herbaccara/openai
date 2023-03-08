@@ -2,7 +2,7 @@ package herbaccara.openai.form
 
 import java.io.File
 
-data class AudioTranscriptionForm @JvmOverloads constructor(
+data class CreateTranscriptionForm @JvmOverloads constructor(
     val file: File,
     val model: String,
     val prompt: String? = null,

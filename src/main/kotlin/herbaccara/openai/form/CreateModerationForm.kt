@@ -3,8 +3,7 @@ package herbaccara.openai.form
 import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class EmbeddingForm @JvmOverloads constructor(
-    val model: String,
+data class CreateModerationForm @JvmOverloads constructor(
     val input: String,
-    val user: String? = null
+    val model: String? = null
 )

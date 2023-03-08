@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class CompletionForm @JvmOverloads constructor(
+data class CreateCompletionForm @JvmOverloads constructor(
     val model: String,
     val prompt: String,
     val suffix: String? = null,

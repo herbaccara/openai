@@ -2,7 +2,7 @@ package herbaccara.openai.form
 
 import java.io.File
 
-data class ImageEditForm @JvmOverloads constructor(
+data class CreateImageEditForm @JvmOverloads constructor(
     val image: File,
     val mask: File? = null,
     val prompt: String,
