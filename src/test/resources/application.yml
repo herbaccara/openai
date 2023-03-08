@@ -1,4 +1,8 @@
 openai:
   enabled: true
-  organization-id: org-kc4dooEnYtxt41SP9shYNLqp
+  organization-id:
   secret-key:
+logging:
+  level:
+    root: info
+    org.springframework.web: debug

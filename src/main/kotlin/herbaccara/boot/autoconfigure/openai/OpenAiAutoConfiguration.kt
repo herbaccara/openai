@@ -9,10 +9,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
-import org.springframework.http.MediaType
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.converter.StringHttpMessageConverter
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter
 import java.nio.charset.StandardCharsets
 import java.util.*
 
@@ -43,14 +43,16 @@ class OpenAiAutoConfiguration {
             .additionalInterceptors(
                 ClientHttpRequestInterceptor { request, body, execution ->
                     val headers = request.headers
-                    headers.contentType = MediaType.APPLICATION_JSON
                     headers.setBearerAuth(properties.secretKey)
+
                     execution.execute(request, body)
                 }
             )
             .additionalInterceptors(*interceptors.toTypedArray())
+            .defaultMessageConverters()
             .messageConverters(
                 StringHttpMessageConverter(StandardCharsets.UTF_8),
+                AllEncompassingFormHttpMessageConverter(),
                 MappingJackson2HttpMessageConverter(objectMapper)
             )
             .also { builder ->
