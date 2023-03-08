@@ -1,3 +1,13 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.22'
+    id "org.jmailen.kotlinter" version "3.13.0"
+}
+
 allprojects {
     version = "0.0.1"
     group = 'herbaccara'
@@ -28,5 +38,30 @@ subprojects {
                 from components.java
             }
         }
+    }
+
+    apply plugin: "org.jetbrains.kotlin.jvm"
+    tasks.withType(KotlinCompile) {
+        kotlinOptions {
+            freeCompilerArgs = ['-Xjsr305=strict']
+            jvmTarget = '1.8'
+        }
+    }
+
+    apply plugin: "org.jmailen.kotlinter"
+    kotlinter {
+        disabledRules = ["no-wildcard-imports", "enum-entry-name-case"]
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+
+    dependencies {
+        implementation 'org.jetbrains.kotlin:kotlin-reflect'
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+
+        implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3'
+        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3'
     }
 }
