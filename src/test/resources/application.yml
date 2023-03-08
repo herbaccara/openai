@@ -1,0 +1,4 @@
+openai:
+  enabled: true
+  organization-id: org-kc4dooEnYtxt41SP9shYNLqp
+  secret-key: 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
