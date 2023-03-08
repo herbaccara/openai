@@ -18,7 +18,7 @@ import java.util.*
 
 @AutoConfiguration
 @EnableConfigurationProperties(OpenAiProperties::class)
-@ConditionalOnProperty(prefix = "jandi", value = ["enabled"], havingValue = "true")
+@ConditionalOnProperty(prefix = "openai", value = ["enabled"], havingValue = "true")
 class OpenAiAutoConfiguration {
 
     @Bean
@@ -30,7 +30,6 @@ class OpenAiAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
     fun openAiService(
         objectMapper: ObjectMapper,
         properties: OpenAiProperties,
