@@ -1,6 +1,6 @@
 package herbaccara.openai.model.edit
 
-data class Choice(
+data class EditChoice(
     val text: String,
     val index: Int
 )

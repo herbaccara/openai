@@ -7,6 +7,6 @@ data class Edit(
     @field:JsonProperty("object")
     val `object`: String,
     val created: Int,
-    val choices: List<Choice>,
+    val choices: List<EditChoice>,
     val usage: Usage
 )

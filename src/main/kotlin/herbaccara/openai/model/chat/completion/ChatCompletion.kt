@@ -9,6 +9,6 @@ data class ChatCompletion(
     val `object`: String,
     val created: Int,
     val model: String,
-    val choices: List<Choice>,
+    val choices: List<ChatCompletionChoice>,
     val usage: Usage
 )

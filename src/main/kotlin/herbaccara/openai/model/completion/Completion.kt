@@ -9,6 +9,6 @@ data class Completion(
     val `object`: String,
     val created: Int,
     val model: String,
-    val choices: List<Choice>,
+    val choices: List<CompletionChoice>,
     val usage: Usage
 )
