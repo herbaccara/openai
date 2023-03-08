@@ -2,7 +2,7 @@ package herbaccara.openai.form
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import herbaccara.openai.model.Message
+import herbaccara.openai.model.chat.completion.Message
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 data class CreateChatCompletionForm @JvmOverloads constructor(

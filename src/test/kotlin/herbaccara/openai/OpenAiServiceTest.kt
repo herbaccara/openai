@@ -2,7 +2,7 @@ package herbaccara.openai
 
 import herbaccara.boot.autoconfigure.openai.OpenAiAutoConfiguration
 import herbaccara.openai.form.*
-import herbaccara.openai.model.Message
+import herbaccara.openai.model.chat.completion.Message
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest

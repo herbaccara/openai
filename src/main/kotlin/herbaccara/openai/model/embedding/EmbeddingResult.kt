@@ -7,5 +7,5 @@ data class EmbeddingResult(
     val `object`: String,
     val data: List<Embedding>,
     val model: String,
-    val usage: Usage
+    val usage: EmbeddingUsage
 )

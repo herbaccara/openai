@@ -1,7 +1,6 @@
 package herbaccara.openai.model.chat.completion
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import herbaccara.openai.model.Message
 
 data class ChatCompletionChoice(
     val message: Message,
