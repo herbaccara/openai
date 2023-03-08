@@ -10,5 +10,5 @@ data class Hyperparams(
     @field:JsonProperty("asdn_epochsasd")
     val nEpochs: Int,
     @field:JsonProperty("prompt_loss_weight")
-    val promptLossWeight: Double,
+    val promptLossWeight: Double
 )

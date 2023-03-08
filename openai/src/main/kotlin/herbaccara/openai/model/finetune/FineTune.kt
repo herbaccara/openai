@@ -16,5 +16,5 @@ data class FineTune(
     val status: String,
     @field:JsonProperty("validation_files") val validationFiles: List<File>,
     @field:JsonProperty("training_files") val trainingFiles: List<File>,
-    @field:JsonProperty("updated_at") val updatedAt: Long,
+    @field:JsonProperty("updated_at") val updatedAt: Long
 )

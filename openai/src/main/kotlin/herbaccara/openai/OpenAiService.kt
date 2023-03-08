@@ -243,19 +243,19 @@ class OpenAiService(
     }
 
     fun retrieveFineTune(fineTuneId: String): FineTune {
-        val uri = "/v1/fine-tunes/${fineTuneId}"
+        val uri = "/v1/fine-tunes/$fineTuneId"
 
         return restTemplate.getForObject(uri)
     }
 
     fun cancelFineTune(fineTuneId: String): FineTune {
-        val uri = "/v1/fine-tunes/${fineTuneId}/cancel"
+        val uri = "/v1/fine-tunes/$fineTuneId/cancel"
 
         return restTemplate.postForObject(uri)
     }
 
     fun listFineTuneEvents(fineTuneId: String): List<Event> {
-        val uri = "/v1/fine-tunes/${fineTuneId}/events"
+        val uri = "/v1/fine-tunes/$fineTuneId/events"
 
         val json = restTemplate.getForObject<JsonNode>(uri)
 
