@@ -128,6 +128,11 @@ class OpenAiService(
         return restTemplate.postForObject(uri, form)
     }
 
+    @JvmOverloads
+    fun createEmbedding(model: String, input: String, user: String? = null): EmbeddingResult {
+        return createEmbedding(CreateEmbeddingForm(model, input, user))
+    }
+
     fun createTranscription(form: CreateTranscriptionForm): String {
         val uri = "/v1/audio/transcriptions"
 
@@ -210,6 +215,10 @@ class OpenAiService(
         return restTemplate.postForObject(uri, httpEntity)
     }
 
+    fun uploadFile(file: java.io.File, purpose: String): File {
+        return uploadFile(UploadFileForm(file, purpose))
+    }
+
     fun deleteFile(fileId: String): DeleteObject {
         val uri = "/v1/files/$fileId"
 
@@ -254,8 +263,9 @@ class OpenAiService(
         return restTemplate.postForObject(uri)
     }
 
-    fun listFineTuneEvents(fineTuneId: String): List<Event> {
-        val uri = "/v1/fine-tunes/$fineTuneId/events"
+    @JvmOverloads
+    fun listFineTuneEvents(fineTuneId: String, stream: Boolean = false): List<Event> {
+        val uri = "/v1/fine-tunes/$fineTuneId/events?stream=$stream"
 
         val json = restTemplate.getForObject<JsonNode>(uri)
 
@@ -272,5 +282,10 @@ class OpenAiService(
         val uri = "/v1/moderations"
 
         return restTemplate.postForObject(uri, form)
+    }
+
+    @JvmOverloads
+    fun createModeration(input: String, model: String? = null): ModerationResult {
+        return createModeration(CreateModerationForm(input, model))
     }
 }
