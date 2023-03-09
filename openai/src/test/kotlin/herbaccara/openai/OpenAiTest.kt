@@ -24,7 +24,7 @@ class OpenAiTest {
 
     @Test
     fun createCompletion() {
-        val form = CreateCompletionForm("text-davinci-003", "Say this is a test", maxTokens = 7, temperature = 0)
+        val form = CreateCompletionForm("text-davinci-003", "Say this is a test", maxTokens = 7, temperature = 0.0)
         val completion = openAiService.createCompletion(form)
         println(completion)
     }
