@@ -10,6 +10,7 @@ import herbaccara.openai.model.DeleteObject
 import herbaccara.openai.model.Error
 import herbaccara.openai.model.audio.AudioResult
 import herbaccara.openai.model.chat.completion.ChatCompletion
+import herbaccara.openai.model.chat.completion.chunk.ChatCompletionChunk
 import herbaccara.openai.model.completion.Completion
 import herbaccara.openai.model.edit.Edit
 import herbaccara.openai.model.embedding.EmbeddingResult
@@ -26,11 +27,16 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody.Part.Companion.createFormData
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
+import okhttp3.sse.EventSource
+import okhttp3.sse.EventSourceListener
+import okhttp3.sse.EventSources
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -51,7 +57,7 @@ class OpenAiService {
         validate: Boolean = false,
         logging: Logging = Logging()
     ) {
-        val client = OkHttpClient.Builder()
+        client = OkHttpClient.Builder()
             .addInterceptor(AuthorizationInterceptor(apiKey))
             .apply {
                 if (logging.enable) {
@@ -75,16 +81,11 @@ class OpenAiService {
         this.validate = validate
     }
 
-    @JvmOverloads
-    constructor(openAi: OpenAi, validate: Boolean = false) {
-        this.openAi = openAi
-        this.validate = validate
-    }
-
     protected val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
         findAndRegisterModules()
     }
 
+    protected val client: OkHttpClient
     protected val openAi: OpenAi
     private val validate: Boolean
 
@@ -114,8 +115,51 @@ class OpenAiService {
     }
 
     fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
-        if (validate) form.validate()
-        return execute { openAi.createChatCompletion(form) }
+        val copy = form.copy(stream = false)
+        if (validate) copy.validate()
+        return execute { openAi.createChatCompletion(copy) }
+    }
+
+    fun createChatCompletionStreaming(form: CreateChatCompletionForm, block: (ChatCompletionChunk) -> Unit): EventSource {
+        val copy = form.copy(stream = true)
+        if (validate) copy.validate()
+
+        val json = objectMapper.writeValueAsString(copy)
+
+        val request = Request.Builder()
+            .url("$BASE_URL/v1/chat/completions")
+            .post(json.toRequestBody("application/json")!!)
+            .build()
+
+        val factory = EventSources.createFactory(client)
+
+        val eventSource = factory.newEventSource(
+            request,
+            object : EventSourceListener() {
+
+                override fun onClosed(eventSource: EventSource) {
+                    super.onClosed(eventSource)
+                }
+
+                override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
+                    super.onFailure(eventSource, t, response)
+                }
+
+                override fun onOpen(eventSource: EventSource, response: Response) {
+                    super.onOpen(eventSource, response)
+                }
+
+                override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
+                    if (data == "[DONE]") return
+                    val chunk = objectMapper.readValue<ChatCompletionChunk>(data)
+                    block(chunk)
+
+                    super.onEvent(eventSource, id, type, data)
+                }
+            }
+        )
+
+        return eventSource
     }
 
     fun createEdit(form: CreateEditForm): Edit {

@@ -38,6 +38,16 @@ class OpenAiTest {
     }
 
     @Test
+    fun createChatCompletionStreaming() {
+        val form = CreateChatCompletionForm("gpt-3.5-turbo", listOf(Message("user", "hello")))
+        openAiService.createChatCompletionStreaming(form) { chunk ->
+            println(chunk)
+        }
+
+        Thread.sleep(60 * 1000)
+    }
+
+    @Test
     fun createEdit() {
         val form = CreateEditForm("text-davinci-edit-001", "What day of the wek is it?", "Fix the spelling mistakes")
         val edit = openAiService.createEdit(form)
