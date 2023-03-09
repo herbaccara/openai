@@ -57,9 +57,12 @@ val listModels: ListModels = openAiService.listModels()
 ## Spring boot configuration
 ### @EnableOpenAi
 ```java
-    @EnableOpenAi
-    public class SpringBootApp {
-    }
+@EnableOpenAi
+public class SpringBootApp {
+    
+    @Autowired
+    private OpenAiService openAiService;
+}
 ```
 
 ### application.yml
