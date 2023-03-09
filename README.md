@@ -41,7 +41,7 @@ dependencies {
 - [Images](https://platform.openai.com/docs/api-reference/images)
 - [Moderations](https://platform.openai.com/docs/api-reference/moderations)
 
-## to use
+## To use
 ```java
 // java
 final OpenAiService openAiService = new OpenAiService(apiKey);
@@ -54,15 +54,22 @@ val openAiService = OpenAiService(apiKey)
 val listModels: ListModels = openAiService.listModels()
 ```
 
-## application.yml 
+## Spring boot configuration
+### @EnableOpenAi
+```java
+    @EnableOpenAi
+    public class SpringBootApp {
+    }
+```
+
+### application.yml
 ```yaml
 openai:
-  enabled: true
   api-key: your api key
-  root-uri: https://api.openai.com
-  timeout: 30s
-  validate: false
-  logging:
+  root-uri: https://api.openai.com # optional
+  timeout: 30s # optional
+  validate: false # optional
+  logging: # optional
     enable: true
     level: BASIC
 ```
