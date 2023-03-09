@@ -22,6 +22,7 @@ class OpenAiAutoConfiguration {
             properties.apiKey,
             properties.rootUri,
             properties.timeout,
+            properties.validate,
             properties.logging
         )
     }

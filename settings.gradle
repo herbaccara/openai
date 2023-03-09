@@ -1,2 +1,2 @@
-include 'spring-boot-starter-openai'
 include 'openai'
+include 'spring-boot-starter-openai'
