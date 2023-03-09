@@ -1,131 +1,154 @@
 package herbaccara.openai
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import herbaccara.openai.exception.OpenAiException
 import herbaccara.openai.form.*
+import herbaccara.openai.log.Logging
 import herbaccara.openai.model.DeleteObject
+import herbaccara.openai.model.Error
+import herbaccara.openai.model.audio.AudioResult
 import herbaccara.openai.model.chat.completion.ChatCompletion
 import herbaccara.openai.model.completion.Completion
 import herbaccara.openai.model.edit.Edit
 import herbaccara.openai.model.embedding.EmbeddingResult
 import herbaccara.openai.model.file.File
-import herbaccara.openai.model.finetune.Event
+import herbaccara.openai.model.file.ListFiles
 import herbaccara.openai.model.finetune.FineTune
+import herbaccara.openai.model.finetune.ListFineTuneEvents
+import herbaccara.openai.model.finetune.ListFineTunes
 import herbaccara.openai.model.image.ImageResult
+import herbaccara.openai.model.model.ListModels
 import herbaccara.openai.model.model.Model
 import herbaccara.openai.model.moderation.ModerationResult
-import org.springframework.core.io.FileSystemResource
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.exchange
-import org.springframework.web.client.getForObject
-import org.springframework.web.client.postForObject
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody.Part.Companion.createFormData
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.logging.HttpLoggingInterceptor.Level
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import java.time.Duration
 
-class OpenAiService(
-    private val restTemplate: RestTemplate,
-    private val objectMapper: ObjectMapper
-) {
-    fun listModels(): List<Model> {
-        val uri = "/v1/models"
+class OpenAiService {
 
-        val json = restTemplate.getForObject<JsonNode>(uri)
+    companion object {
+        const val BASE_URL: String = "https://api.openai.com"
+    }
 
-        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<Model>>() {})
+    @JvmOverloads
+    constructor(
+        apiKey: String,
+        baseUrl: String = BASE_URL,
+        timeout: Duration = Duration.ofSeconds(30),
+        logging: Logging = Logging()
+    ) {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(AuthorizationInterceptor(apiKey))
+            .apply {
+                if (logging.enable) {
+                    addInterceptor(
+                        HttpLoggingInterceptor().apply {
+                            level = Level.valueOf(logging.level.name)
+                        }
+                    )
+                }
+            }
+            .readTimeout(timeout)
+            .build()
+
+        openAi = Retrofit.Builder()
+            .client(client)
+            .baseUrl(baseUrl)
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .build()
+            .create(OpenAi::class.java)
+    }
+
+    constructor(openAi: OpenAi) {
+        this.openAi = openAi
+    }
+
+    protected val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
+        findAndRegisterModules()
+    }
+
+    protected val openAi: OpenAi
+
+    private fun <T> execute(block: () -> Call<T>): T {
+        val call = block()
+        val response = call.execute()
+        if (response.isSuccessful) {
+            return response.body()!!
+        } else {
+            val errorStr = response.errorBody()?.string()
+            val error: Error? = errorStr?.let { objectMapper.readValue(errorStr) }
+            throw OpenAiException("OpenAi error", error = error)
+        }
+    }
+
+    fun listModels(): ListModels {
+        return execute(openAi::listModels)
     }
 
     fun retrieveModel(model: String): Model {
-        val uri = "/v1/models/$model"
-        return restTemplate.getForObject(uri)
+        return execute { openAi.retrieveModel(model) }
     }
 
     fun createCompletion(form: CreateCompletionForm): Completion {
-        val uri = "/v1/completions"
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createCompletion(form) }
     }
 
     fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
-        val uri = "/v1/chat/completions"
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createChatCompletion(form) }
     }
 
     fun createEdit(form: CreateEditForm): Edit {
-        val uri = "/v1/edits"
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createEdit(form) }
     }
 
     fun createImage(form: CreateImageForm): ImageResult {
-        val uri = "/v1/images/generations"
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createImage(form) }
     }
 
     fun createImageEdit(form: CreateImageEditForm): ImageResult {
-        val uri = "/v1/images/edits"
+        val (image, mask, prompt, n, size, responseFormat, user) = form
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.MULTIPART_FORM_DATA
+        val imagePart = createFormData("image", image.name, image.asRequestBody("image/png".toMediaTypeOrNull()))
+        val maskPart = mask?.let { createFormData("mask", it.name, it.asRequestBody("image/png".toMediaTypeOrNull())) }
+        val promptPart = prompt.toRequestBody()!!
+        val nPart = n.toRequestBody()
+        val sizePart = size.toRequestBody()
+        val responseFormatPart = responseFormat.toRequestBody()
+        val userPart = user?.toRequestBody()
+
+        return execute {
+            openAi.createImageEdit(imagePart, maskPart, promptPart, nPart, sizePart, responseFormatPart, userPart)
         }
-
-        val body = LinkedMultiValueMap<String, Any>().apply {
-            add("image", FileSystemResource(form.image))
-            if (form.mask != null) {
-                add("mask", FileSystemResource(form.mask))
-            }
-            add("prompt", form.prompt)
-            if (form.n != null) {
-                add("n", form.n)
-            }
-            if (form.size != null) {
-                add("size", form.size)
-            }
-            if (form.responseFormat != null) {
-                add("response_format", form.responseFormat)
-            }
-            if (form.user != null) {
-                add("user", form.user)
-            }
-        }
-
-        val httpEntity = HttpEntity(body, headers)
-
-        return restTemplate.postForObject(uri, httpEntity)
     }
 
     fun createImageVariation(form: CreateImageVariationForm): ImageResult {
-        val uri = "/v1/images/variations"
+        val (image, n, size, responseFormat, user) = form
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.MULTIPART_FORM_DATA
+        val imagePart = createFormData("image", image.name, image.asRequestBody("image/png".toMediaTypeOrNull()))
+        val nPart = n.toRequestBody()
+        val sizePart = size.toRequestBody()
+        val responseFormatPart = responseFormat.toRequestBody()
+        val userPart = user?.toRequestBody()
+
+        return execute {
+            openAi.createImageVariation(imagePart, nPart, sizePart, responseFormatPart, userPart)
         }
-
-        val body = LinkedMultiValueMap<String, Any>().apply {
-            add("image", FileSystemResource(form.image))
-            if (form.n != null) {
-                add("n", form.n)
-            }
-            if (form.size != null) {
-                add("size", form.size)
-            }
-            if (form.responseFormat != null) {
-                add("response_format", form.responseFormat)
-            }
-            if (form.user != null) {
-                add("user", form.user)
-            }
-        }
-
-        val httpEntity = HttpEntity(body, headers)
-
-        return restTemplate.postForObject(uri, httpEntity)
     }
 
     fun createEmbedding(form: CreateEmbeddingForm): EmbeddingResult {
-        val uri = "/v1/embeddings"
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createEmbedding(form) }
     }
 
     @JvmOverloads
@@ -133,86 +156,53 @@ class OpenAiService(
         return createEmbedding(CreateEmbeddingForm(model, input, user))
     }
 
-    fun createTranscription(form: CreateTranscriptionForm): String {
-        val uri = "/v1/audio/transcriptions"
+    fun createTranscription(form: CreateTranscriptionForm): AudioResult {
+        val (file, model, prompt, responseFormat, temperature, language) = form
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.MULTIPART_FORM_DATA
+        val filePart = createFormData("file", file.name, file.asRequestBody("audio/*".toMediaTypeOrNull()))
+        val modelPart = model.toRequestBody()!!
+        val promptPart = prompt.toRequestBody()
+        val responseFormatPart = responseFormat.toRequestBody()
+        val temperaturePart = temperature?.toRequestBody()
+        val languagePart = language?.toRequestBody()
+
+        return execute {
+            openAi.createTranscription(
+                filePart,
+                modelPart,
+                promptPart,
+                responseFormatPart,
+                temperaturePart,
+                languagePart
+            )
         }
-
-        val body = LinkedMultiValueMap<String, Any>().apply {
-            add("file", FileSystemResource(form.file))
-            add("model", form.model)
-            if (form.prompt != null) {
-                add("prompt", form.prompt)
-            }
-            if (form.responseFormat != null) {
-                add("response_format", form.responseFormat)
-            }
-            if (form.temperature != null) {
-                add("temperature", form.temperature)
-            }
-            if (form.language != null) {
-                add("language", form.language)
-            }
-        }
-
-        val httpEntity = HttpEntity(body, headers)
-
-        val json = restTemplate.postForObject<JsonNode>(uri, httpEntity)
-        return json["text"].asText()
     }
 
-    fun createTranslation(form: CreateTranslationForm): String {
-        val uri = "/v1/audio/translations"
+    fun createTranslation(form: CreateTranslationForm): AudioResult {
+        val (file, model, prompt, responseFormat, temperature) = form
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.MULTIPART_FORM_DATA
+        val filePart = createFormData("file", file.name, file.asRequestBody("audio/*".toMediaTypeOrNull()))
+        val modelPart = model.toRequestBody()!!
+        val promptPart = prompt.toRequestBody()
+        val responseFormatPart = responseFormat.toRequestBody()
+        val temperaturePart = temperature?.toRequestBody()
+
+        return execute {
+            openAi.createTranslation(filePart, modelPart, promptPart, responseFormatPart, temperaturePart)
         }
-
-        val body = LinkedMultiValueMap<String, Any>().apply {
-            add("file", FileSystemResource(form.file))
-            add("model", form.model)
-            if (form.prompt != null) {
-                add("prompt", form.prompt)
-            }
-            if (form.responseFormat != null) {
-                add("response_format", form.responseFormat)
-            }
-            if (form.temperature != null) {
-                add("temperature", form.temperature)
-            }
-        }
-
-        val httpEntity = HttpEntity(body, headers)
-
-        val json = restTemplate.postForObject<JsonNode>(uri, httpEntity)
-        return json["text"].asText()
     }
 
-    fun listFiles(): List<File> {
-        val uri = "/v1/files"
-
-        val json = restTemplate.getForObject<JsonNode>(uri)
-
-        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<File>>() {})
+    fun listFiles(): ListFiles {
+        return execute(openAi::listFiles)
     }
 
     fun uploadFile(form: UploadFileForm): File {
-        val uri = "/v1/files"
+        val (file, purpose) = form
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.MULTIPART_FORM_DATA
-        }
+        val filePart = createFormData("file", file.name, file.asRequestBody("text".toMediaTypeOrNull()))
+        val purposePart = purpose.toRequestBody()!!
 
-        val body = LinkedMultiValueMap<String, Any>().apply {
-            add("file", FileSystemResource(form.file))
-            add("purpose", form.purpose)
-        }
-
-        val httpEntity = HttpEntity(body, headers)
-
-        return restTemplate.postForObject(uri, httpEntity)
+        return execute { openAi.uploadFile(filePart, purposePart) }
     }
 
     fun uploadFile(file: java.io.File, purpose: String): File {
@@ -220,72 +210,58 @@ class OpenAiService(
     }
 
     fun deleteFile(fileId: String): DeleteObject {
-        val uri = "/v1/files/$fileId"
-
-        return restTemplate.exchange<DeleteObject>(uri, HttpMethod.DELETE, HttpEntity.EMPTY).body!!
+        return execute { openAi.deleteFile(fileId) }
     }
 
     fun retrieveFile(fileId: String): File {
-        val uri = "/v1/files/$fileId"
-
-        return restTemplate.getForObject(uri)
+        return execute { openAi.retrieveFile(fileId) }
     }
 
     fun retrieveFileContent(fileId: String): String {
-        val uri = "/v1/files/$fileId/content"
-
-        return restTemplate.getForObject(uri)
+        return execute { openAi.retrieveFileContent(fileId) }
     }
 
     fun createFineTune(form: CreateFineTuneForm): FineTune {
-        val uri = "/v1/fine-tunes"
-
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createFineTune(form) }
     }
 
-    fun listFineTunes(): List<FineTune> {
-        val uri = "/v1/fine-tunes"
-
-        val json = restTemplate.getForObject<JsonNode>(uri)
-
-        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<FineTune>>() {})
+    fun listFineTunes(): ListFineTunes {
+        return execute(openAi::listFineTunes)
     }
 
     fun retrieveFineTune(fineTuneId: String): FineTune {
-        val uri = "/v1/fine-tunes/$fineTuneId"
-
-        return restTemplate.getForObject(uri)
+        return execute { openAi.retrieveFineTune(fineTuneId) }
     }
 
     fun cancelFineTune(fineTuneId: String): FineTune {
-        val uri = "/v1/fine-tunes/$fineTuneId/cancel"
-
-        return restTemplate.postForObject(uri)
+        return execute { openAi.cancelFineTune(fineTuneId) }
     }
 
     @JvmOverloads
-    fun listFineTuneEvents(fineTuneId: String, stream: Boolean = false): List<Event> {
-        val uri = "/v1/fine-tunes/$fineTuneId/events?stream=$stream"
-
-        val json = restTemplate.getForObject<JsonNode>(uri)
-
-        return objectMapper.readValue(json["data"].toString(), object : TypeReference<List<Event>>() {})
+    fun listFineTuneEvents(fineTuneId: String, stream: Boolean = false): ListFineTuneEvents {
+        return execute { openAi.listFineTuneEvents(fineTuneId, stream) }
     }
 
     fun deleteFineTuneModel(model: String): DeleteObject {
-        val uri = "/v1/models/$model"
-
-        return restTemplate.exchange<DeleteObject>(uri, HttpMethod.DELETE, HttpEntity.EMPTY).body!!
+        return execute { openAi.deleteFineTuneModel(model) }
     }
 
     fun createModeration(form: CreateModerationForm): ModerationResult {
-        val uri = "/v1/moderations"
-
-        return restTemplate.postForObject(uri, form)
+        return execute { openAi.createModeration(form) }
     }
 
     @JvmOverloads
     fun createModeration(input: String, model: String? = null): ModerationResult {
         return createModeration(CreateModerationForm(input, model))
+    }
+
+    // extension
+
+    private fun Any?.toRequestBody(contentType: String = "multipart/form-data"): RequestBody? {
+        return this?.toString()?.toRequestBody(contentType.toMediaType())
+    }
+
+    private fun Enum<*>?.toRequestBody(contentType: String = "multipart/form-data"): RequestBody? {
+        return this?.name?.toRequestBody(contentType.toMediaType())
     }
 }

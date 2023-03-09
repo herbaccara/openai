@@ -2,6 +2,7 @@ package herbaccara.openai
 
 import herbaccara.openai.form.*
 import herbaccara.openai.model.DeleteObject
+import herbaccara.openai.model.audio.AudioResult
 import herbaccara.openai.model.chat.completion.ChatCompletion
 import herbaccara.openai.model.completion.Completion
 import herbaccara.openai.model.edit.Edit
@@ -73,8 +74,8 @@ interface OpenAi {
         @Part("prompt") prompt: RequestBody? = null,
         @Part("response_format") responseFormat: RequestBody? = null,
         @Part("temperature") temperature: RequestBody? = null,
-        @Part("language") language: RequestBody? = null,
-    ): Call<String>
+        @Part("language") language: RequestBody? = null
+    ): Call<AudioResult>
 
     @Multipart
     @POST("/v1/audio/translations")
@@ -83,8 +84,8 @@ interface OpenAi {
         @Part("model") model: RequestBody,
         @Part("prompt") prompt: RequestBody? = null,
         @Part("response_format") responseFormat: RequestBody? = null,
-        @Part("temperature") temperature: RequestBody? = null,
-    ): Call<String>
+        @Part("temperature") temperature: RequestBody? = null
+    ): Call<AudioResult>
 
     @GET("/v1/files")
     fun listFiles(): Call<ListFiles>
@@ -93,7 +94,7 @@ interface OpenAi {
     @POST("/v1/files")
     fun uploadFile(
         @Part file: MultipartBody.Part,
-        @Part("purpose") purpose: RequestBody,
+        @Part("purpose") purpose: RequestBody
     ): Call<File>
 
     @DELETE("/v1/files/{file_id}")
