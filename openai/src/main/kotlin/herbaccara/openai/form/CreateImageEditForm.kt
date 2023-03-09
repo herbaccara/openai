@@ -1,5 +1,6 @@
 package herbaccara.openai.form
 
+import herbaccara.openai.form.validation.ValidationUtils
 import java.io.File
 
 data class CreateImageEditForm @JvmOverloads constructor(
@@ -10,4 +11,12 @@ data class CreateImageEditForm @JvmOverloads constructor(
     val size: String? = null,
     val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
-)
+) {
+    init {
+        ValidationUtils.image(::image)
+        ValidationUtils.image(::mask)
+        ValidationUtils.lessThan(::prompt, 1000)
+        ValidationUtils.between(::n, 1.0, 10.0)
+        ValidationUtils.imageSize(::size)
+    }
+}

@@ -2,6 +2,7 @@ package herbaccara.openai.form
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import herbaccara.openai.form.validation.ValidationUtils
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 data class CreateCompletionForm @JvmOverloads constructor(
@@ -10,7 +11,7 @@ data class CreateCompletionForm @JvmOverloads constructor(
     val suffix: String? = null,
     @field:JsonProperty("max_tokens")
     val maxTokens: Int? = null,
-    val temperature: Int? = null,
+    val temperature: Double? = null,
     @field:JsonProperty("top_p")
     val topP: Int? = null,
     val n: Int? = null,
@@ -27,4 +28,10 @@ data class CreateCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("logit_bias")
     val logitBias: Map<String, Any> = emptyMap(),
     val user: String? = null
-)
+) {
+    init {
+        ValidationUtils.between(::temperature, 0.0, 2.0)
+        ValidationUtils.between(::presencePenalty, -2.0, 2.0)
+        ValidationUtils.between(::frequencyPenalty, -2.0, 2.0)
+    }
+}

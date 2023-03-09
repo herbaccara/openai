@@ -89,7 +89,7 @@ class OpenAiService {
         } else {
             val errorStr = response.errorBody()?.string()
             val error: Error? = errorStr?.let { objectMapper.readValue(errorStr) }
-            throw OpenAiException("OpenAi error", error = error)
+            throw OpenAiException.HttpErrorException("OpenAi error", error = error)
         }
     }
 

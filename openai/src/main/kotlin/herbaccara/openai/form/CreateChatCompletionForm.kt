@@ -2,13 +2,17 @@ package herbaccara.openai.form
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import herbaccara.openai.form.validation.ValidationUtils
 import herbaccara.openai.model.chat.completion.Message
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 data class CreateChatCompletionForm @JvmOverloads constructor(
+    /***
+     * ID of the model to use. Currently, only gpt-3.5-turbo and gpt-3.5-turbo-0301 are supported.
+     */
     val model: String,
     val messages: List<Message>,
-    val temperature: Int? = null,
+    val temperature: Double? = null,
     @field:JsonProperty("top_p")
     val topP: Int? = null,
     val n: Int? = null,
@@ -23,4 +27,10 @@ data class CreateChatCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("logit_bias")
     val logitBias: Map<String, Any> = emptyMap(),
     val user: String? = null
-)
+) {
+    init {
+        ValidationUtils.between(::temperature, 0.0, 2.0)
+        ValidationUtils.between(::presencePenalty, -2.0, 2.0)
+        ValidationUtils.between(::frequencyPenalty, -2.0, 2.0)
+    }
+}
