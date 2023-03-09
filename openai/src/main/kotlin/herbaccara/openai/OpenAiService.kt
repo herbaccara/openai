@@ -40,13 +40,14 @@ class OpenAiService {
 
     companion object {
         const val BASE_URL: String = "https://api.openai.com"
+        val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(30)
     }
 
     @JvmOverloads
     constructor(
         apiKey: String,
         baseUrl: String = BASE_URL,
-        timeout: Duration = Duration.ofSeconds(30),
+        timeout: Duration = DEFAULT_TIMEOUT,
         validate: Boolean = false,
         logging: Logging = Logging()
     ) {
