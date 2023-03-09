@@ -3,6 +3,7 @@ openai:
   api-key:
   root-uri: https://api.openai.com
   timeout: 30s
+  validate: false
   logging:
     enable: true
     level: BASIC

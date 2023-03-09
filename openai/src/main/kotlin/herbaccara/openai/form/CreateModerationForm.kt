@@ -6,4 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class CreateModerationForm @JvmOverloads constructor(
     val input: String,
     val model: String? = null
-)
+) : Form {
+
+    override fun validate() {
+        // nothing
+    }
+}

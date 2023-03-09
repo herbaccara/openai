@@ -17,4 +17,9 @@ data class CreateFineTuneForm @JvmOverloads constructor(
     @field:JsonProperty("classification_positive_class") val classificationPositiveClass: String? = null,
     @field:JsonProperty("classification_betas") val classificationBetas: List<Double>? = null,
     val suffix: String? = null
-)
+) : Form {
+
+    override fun validate() {
+        // nothing
+    }
+}

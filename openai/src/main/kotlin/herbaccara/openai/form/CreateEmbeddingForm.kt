@@ -7,4 +7,9 @@ data class CreateEmbeddingForm @JvmOverloads constructor(
     val model: String,
     val input: String,
     val user: String? = null
-)
+) : Form {
+
+    override fun validate() {
+        // nothing
+    }
+}

@@ -47,6 +47,7 @@ class OpenAiService {
         apiKey: String,
         baseUrl: String = BASE_URL,
         timeout: Duration = Duration.ofSeconds(30),
+        validate: Boolean = false,
         logging: Logging = Logging()
     ) {
         val client = OkHttpClient.Builder()
@@ -69,10 +70,14 @@ class OpenAiService {
             .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .build()
             .create(OpenAi::class.java)
+
+        this.validate = validate
     }
 
-    constructor(openAi: OpenAi) {
+    @JvmOverloads
+    constructor(openAi: OpenAi, validate: Boolean = false) {
         this.openAi = openAi
+        this.validate = validate
     }
 
     protected val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
@@ -80,6 +85,7 @@ class OpenAiService {
     }
 
     protected val openAi: OpenAi
+    private val validate: Boolean
 
     private fun <T> execute(block: () -> Call<T>): T {
         val call = block()
@@ -102,22 +108,27 @@ class OpenAiService {
     }
 
     fun createCompletion(form: CreateCompletionForm): Completion {
+        if (validate) form.validate()
         return execute { openAi.createCompletion(form) }
     }
 
     fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
+        if (validate) form.validate()
         return execute { openAi.createChatCompletion(form) }
     }
 
     fun createEdit(form: CreateEditForm): Edit {
+        if (validate) form.validate()
         return execute { openAi.createEdit(form) }
     }
 
     fun createImage(form: CreateImageForm): ImageResult {
+        if (validate) form.validate()
         return execute { openAi.createImage(form) }
     }
 
     fun createImageEdit(form: CreateImageEditForm): ImageResult {
+        if (validate) form.validate()
         val (image, mask, prompt, n, size, responseFormat, user) = form
 
         val imagePart = createFormData("image", image.name, image.asRequestBody("image/png".toMediaTypeOrNull()))
@@ -134,6 +145,7 @@ class OpenAiService {
     }
 
     fun createImageVariation(form: CreateImageVariationForm): ImageResult {
+        if (validate) form.validate()
         val (image, n, size, responseFormat, user) = form
 
         val imagePart = createFormData("image", image.name, image.asRequestBody("image/png".toMediaTypeOrNull()))
@@ -148,6 +160,7 @@ class OpenAiService {
     }
 
     fun createEmbedding(form: CreateEmbeddingForm): EmbeddingResult {
+        if (validate) form.validate()
         return execute { openAi.createEmbedding(form) }
     }
 
@@ -157,6 +170,7 @@ class OpenAiService {
     }
 
     fun createTranscription(form: CreateTranscriptionForm): AudioResult {
+        if (validate) form.validate()
         val (file, model, prompt, responseFormat, temperature, language) = form
 
         val filePart = createFormData("file", file.name, file.asRequestBody("audio/*".toMediaTypeOrNull()))
@@ -179,6 +193,7 @@ class OpenAiService {
     }
 
     fun createTranslation(form: CreateTranslationForm): AudioResult {
+        if (validate) form.validate()
         val (file, model, prompt, responseFormat, temperature) = form
 
         val filePart = createFormData("file", file.name, file.asRequestBody("audio/*".toMediaTypeOrNull()))
@@ -197,6 +212,7 @@ class OpenAiService {
     }
 
     fun uploadFile(form: UploadFileForm): File {
+        if (validate) form.validate()
         val (file, purpose) = form
 
         val filePart = createFormData("file", file.name, file.asRequestBody("text".toMediaTypeOrNull()))
@@ -222,6 +238,7 @@ class OpenAiService {
     }
 
     fun createFineTune(form: CreateFineTuneForm): FineTune {
+        if (validate) form.validate()
         return execute { openAi.createFineTune(form) }
     }
 
@@ -247,6 +264,7 @@ class OpenAiService {
     }
 
     fun createModeration(form: CreateModerationForm): ModerationResult {
+        if (validate) form.validate()
         return execute { openAi.createModeration(form) }
     }
 

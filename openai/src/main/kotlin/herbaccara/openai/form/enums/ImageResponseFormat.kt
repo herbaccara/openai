@@ -1,4 +1,4 @@
-package herbaccara.openai.form
+package herbaccara.openai.form.enums
 
 @Suppress("EnumEntryName")
 enum class ImageResponseFormat {

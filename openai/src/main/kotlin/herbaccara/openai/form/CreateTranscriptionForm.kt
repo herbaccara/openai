@@ -1,5 +1,6 @@
 package herbaccara.openai.form
 
+import herbaccara.openai.form.enums.AudioResponseFormat
 import herbaccara.openai.form.validation.ValidationUtils
 import java.io.File
 
@@ -10,8 +11,9 @@ data class CreateTranscriptionForm @JvmOverloads constructor(
     val responseFormat: AudioResponseFormat? = null,
     val temperature: Double? = null,
     val language: String? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.audio(::file)
         ValidationUtils.between(::temperature, 0.0, 1.0)
     }

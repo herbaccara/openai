@@ -16,8 +16,9 @@ data class CreateEditForm @JvmOverloads constructor(
     val temperature: Double? = null,
     @field:JsonProperty("top_p")
     val topP: Int? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.between(::temperature, 0.0, 2.0)
     }
 }

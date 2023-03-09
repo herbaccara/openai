@@ -2,4 +2,12 @@ package herbaccara.openai.form
 
 import java.io.File
 
-data class UploadFileForm(val file: File, val purpose: String)
+data class UploadFileForm(
+    val file: File,
+    val purpose: String
+) : Form {
+
+    override fun validate() {
+        // nothing
+    }
+}

@@ -1,5 +1,6 @@
 package herbaccara.openai.form
 
+import herbaccara.openai.form.enums.ImageResponseFormat
 import herbaccara.openai.form.validation.ValidationUtils
 import java.io.File
 
@@ -9,8 +10,9 @@ data class CreateImageVariationForm @JvmOverloads constructor(
     val size: String? = null,
     val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.image(::image)
         ValidationUtils.between(::n, 1.0, 10.0)
         ValidationUtils.imageSize(::size)

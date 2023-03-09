@@ -27,8 +27,9 @@ data class CreateChatCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("logit_bias")
     val logitBias: Map<String, Any> = emptyMap(),
     val user: String? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.between(::temperature, 0.0, 2.0)
         ValidationUtils.between(::presencePenalty, -2.0, 2.0)
         ValidationUtils.between(::frequencyPenalty, -2.0, 2.0)

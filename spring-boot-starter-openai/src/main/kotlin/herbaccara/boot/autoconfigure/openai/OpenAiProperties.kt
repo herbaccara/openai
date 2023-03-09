@@ -12,5 +12,6 @@ data class OpenAiProperties(
     val apiKey: String,
     val rootUri: String = "https://api.openai.com",
     val timeout: Duration = Duration.ofSeconds(30),
+    val validate: Boolean = false,
     val logging: Logging = Logging()
 )

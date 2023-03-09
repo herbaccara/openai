@@ -2,6 +2,7 @@ package herbaccara.openai.form
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import herbaccara.openai.form.enums.ImageResponseFormat
 import herbaccara.openai.form.validation.ValidationUtils
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -15,8 +16,9 @@ data class CreateImageForm @JvmOverloads constructor(
     @field:JsonProperty("response_format")
     val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.lessThan(::prompt, 1000)
         ValidationUtils.between(::n, 1.0, 10.0)
         ValidationUtils.imageSize(::size)

@@ -1,5 +1,6 @@
 package herbaccara.openai.form
 
+import herbaccara.openai.form.enums.ImageResponseFormat
 import herbaccara.openai.form.validation.ValidationUtils
 import java.io.File
 
@@ -11,8 +12,9 @@ data class CreateImageEditForm @JvmOverloads constructor(
     val size: String? = null,
     val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
-) {
-    init {
+) : Form {
+
+    override fun validate() {
         ValidationUtils.image(::image)
         ValidationUtils.image(::mask)
         ValidationUtils.lessThan(::prompt, 1000)
