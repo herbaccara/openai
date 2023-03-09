@@ -1,8 +1,11 @@
 openai:
   enabled: true
-  organization-id:
-  secret-key:
+  api-key:
+  root-uri: https://api.openai.com
+  timeout: 30s
+  logging:
+    enable: true
+    level: BASIC
 logging:
   level:
     root: info
-    org.springframework.web: debug
