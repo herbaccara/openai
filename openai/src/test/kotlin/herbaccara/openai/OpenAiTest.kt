@@ -31,6 +31,17 @@ class OpenAiTest {
     }
 
     @Test
+    fun createCompletions() {
+        val form = CreateCompletionForm("text-davinci-003", "Say this is a test", maxTokens = 7, temperature = 0.0)
+
+        openAiService.createCompletions(form) { event ->
+            println(event)
+        }
+
+        Thread.sleep(60 * 1000)
+    }
+
+    @Test
     fun createChatCompletion() {
         val form = CreateChatCompletionForm("gpt-3.5-turbo", listOf(Message("user", "hello")))
         val chatCompletion = openAiService.createChatCompletion(form)
@@ -38,10 +49,10 @@ class OpenAiTest {
     }
 
     @Test
-    fun createChatCompletionStreaming() {
+    fun createChatCompletions() {
         val form = CreateChatCompletionForm("gpt-3.5-turbo", listOf(Message("user", "hello")))
-        openAiService.createChatCompletionStreaming(form) { chunk ->
-            println(chunk)
+        openAiService.createChatCompletions(form) { event ->
+            println(event)
         }
 
         Thread.sleep(60 * 1000)

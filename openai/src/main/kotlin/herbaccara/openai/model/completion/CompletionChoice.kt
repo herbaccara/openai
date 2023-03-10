@@ -7,5 +7,5 @@ data class CompletionChoice(
     val index: Int,
     val logprobs: Map<String, Any>?,
     @field:JsonProperty("finish_reason")
-    val finishReason: String
+    val finishReason: String?
 )

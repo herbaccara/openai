@@ -12,6 +12,7 @@ import herbaccara.openai.model.audio.AudioResult
 import herbaccara.openai.model.chat.completion.ChatCompletion
 import herbaccara.openai.model.chat.completion.chunk.ChatCompletionChunk
 import herbaccara.openai.model.completion.Completion
+import herbaccara.openai.model.completion.TextCompletion
 import herbaccara.openai.model.edit.Edit
 import herbaccara.openai.model.embedding.EmbeddingResult
 import herbaccara.openai.model.file.File
@@ -23,6 +24,8 @@ import herbaccara.openai.model.image.ImageResult
 import herbaccara.openai.model.model.ListModels
 import herbaccara.openai.model.model.Model
 import herbaccara.openai.model.moderation.ModerationResult
+import herbaccara.openai.sse.CompletionEventSourceListener
+import herbaccara.openai.sse.Event
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody.Part.Companion.createFormData
@@ -31,16 +34,15 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
 import okhttp3.sse.EventSource
-import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import java.time.Duration
+import java.util.function.Consumer
 
 class OpenAiService {
 
@@ -110,8 +112,25 @@ class OpenAiService {
     }
 
     fun createCompletion(form: CreateCompletionForm): Completion {
-        if (validate) form.validate()
-        return execute { openAi.createCompletion(form) }
+        val copy = form.copy(stream = false)
+        if (validate) copy.validate()
+        return execute { openAi.createCompletion(copy) }
+    }
+
+    fun createCompletions(form: CreateCompletionForm, block: (Event<TextCompletion>) -> Unit): EventSource {
+        val copy = form.copy(stream = true)
+        if (validate) copy.validate()
+
+        val json = objectMapper.writeValueAsString(copy)
+
+        val request = Request.Builder()
+            .url("$BASE_URL/v1/completions")
+            .post(json.toRequestBody("application/json")!!)
+            .build()
+
+        val factory = EventSources.createFactory(client)
+
+        return factory.newEventSource(request, CompletionEventSourceListener(objectMapper, block))
     }
 
     fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
@@ -120,7 +139,7 @@ class OpenAiService {
         return execute { openAi.createChatCompletion(copy) }
     }
 
-    fun createChatCompletionStreaming(form: CreateChatCompletionForm, block: (ChatCompletionChunk) -> Unit): EventSource {
+    fun createChatCompletions(form: CreateChatCompletionForm, block: Consumer<Event<ChatCompletionChunk>>): EventSource {
         val copy = form.copy(stream = true)
         if (validate) copy.validate()
 
@@ -133,33 +152,7 @@ class OpenAiService {
 
         val factory = EventSources.createFactory(client)
 
-        val eventSource = factory.newEventSource(
-            request,
-            object : EventSourceListener() {
-
-                override fun onClosed(eventSource: EventSource) {
-                    super.onClosed(eventSource)
-                }
-
-                override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                    super.onFailure(eventSource, t, response)
-                }
-
-                override fun onOpen(eventSource: EventSource, response: Response) {
-                    super.onOpen(eventSource, response)
-                }
-
-                override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-                    if (data == "[DONE]") return
-                    val chunk = objectMapper.readValue<ChatCompletionChunk>(data)
-                    block(chunk)
-
-                    super.onEvent(eventSource, id, type, data)
-                }
-            }
-        )
-
-        return eventSource
+        return factory.newEventSource(request, CompletionEventSourceListener(objectMapper, block))
     }
 
     fun createEdit(form: CreateEditForm): Edit {
