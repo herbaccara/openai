@@ -20,7 +20,7 @@ data class CreateChatCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("max_tokens") val maxTokens: Int? = null,
     @field:JsonProperty("presence_penalty") val presencePenalty: Double? = null,
     @field:JsonProperty("frequency_penalty") val frequencyPenalty: Double? = null,
-    @field:JsonProperty("logit_bias") val logitBias: Map<String, Int>?,
+    @field:JsonProperty("logit_bias") val logitBias: Map<String, Int>? = null,
     val user: String? = null
 ) : Form {
 

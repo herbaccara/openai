@@ -20,7 +20,7 @@ data class CreateCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("presence_penalty") val presencePenalty: Double? = null,
     @field:JsonProperty("frequency_penalty") val frequencyPenalty: Double? = null,
     @field:JsonProperty("best_of") val bestOf: Int? = null,
-    @field:JsonProperty("logit_bias") val logitBias: Map<String, Int>?,
+    @field:JsonProperty("logit_bias") val logitBias: Map<String, Int>? = null,
     val user: String? = null
 ) : Form {
 
