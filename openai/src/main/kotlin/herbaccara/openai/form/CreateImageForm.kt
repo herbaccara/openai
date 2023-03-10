@@ -13,8 +13,7 @@ data class CreateImageForm @JvmOverloads constructor(
     val prompt: String,
     val n: Int? = null,
     val size: String? = null,
-    @field:JsonProperty("response_format")
-    val responseFormat: ImageResponseFormat? = null,
+    @field:JsonProperty("response_format") val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
 ) : Form {
 

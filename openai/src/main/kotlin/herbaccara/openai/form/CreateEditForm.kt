@@ -14,8 +14,7 @@ data class CreateEditForm @JvmOverloads constructor(
     val instruction: String,
     val n: Int? = null,
     val temperature: Double? = null,
-    @field:JsonProperty("top_p")
-    val topP: Int? = null
+    @field:JsonProperty("top_p") val topP: Int? = null
 ) : Form {
 
     override fun validate() {
