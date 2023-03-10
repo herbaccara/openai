@@ -41,6 +41,7 @@ import okhttp3.sse.EventSources
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
+import java.net.Proxy
 import java.time.Duration
 import java.util.function.Consumer
 
@@ -57,9 +58,11 @@ class OpenAiService {
         baseUrl: String = BASE_URL,
         timeout: Duration = DEFAULT_TIMEOUT,
         validate: Boolean = false,
-        logging: Logging = Logging()
+        logging: Logging = Logging(),
+        proxy: Proxy? = null
     ) {
         client = OkHttpClient.Builder()
+            .proxy(proxy)
             .addInterceptor(AuthorizationInterceptor(apiKey))
             .apply {
                 if (logging.enable) {

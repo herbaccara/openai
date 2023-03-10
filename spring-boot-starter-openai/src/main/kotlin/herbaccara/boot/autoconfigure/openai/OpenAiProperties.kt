@@ -14,5 +14,8 @@ data class OpenAiProperties(
     val rootUri: String = OpenAiService.BASE_URL,
     val timeout: Duration = OpenAiService.DEFAULT_TIMEOUT,
     val validate: Boolean = false,
-    val logging: Logging = Logging()
-)
+    val logging: Logging = Logging(),
+    val proxy: ProxyProperties? = null
+) {
+    data class ProxyProperties(val host: String, val port: Int)
+}

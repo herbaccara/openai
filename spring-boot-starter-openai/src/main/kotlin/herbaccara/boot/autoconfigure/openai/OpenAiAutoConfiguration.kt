@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.util.*
 
 @AutoConfiguration
@@ -18,12 +20,17 @@ class OpenAiAutoConfiguration {
     fun openAiService(properties: OpenAiProperties): OpenAiService {
         if (properties.apiKey.isEmpty()) throw NullPointerException("\"api-key\" must not be null")
 
+        val proxy = properties.proxy?.let {
+            Proxy(Proxy.Type.HTTP, InetSocketAddress(it.host, it.port))
+        }
+
         return OpenAiService(
             properties.apiKey,
             properties.rootUri,
             properties.timeout,
             properties.validate,
-            properties.logging
+            properties.logging,
+            proxy
         )
     }
 }

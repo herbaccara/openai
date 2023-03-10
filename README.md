@@ -72,6 +72,9 @@ openai:
   root-uri: https://api.openai.com # optional
   timeout: 30s # optional
   validate: false # optional
+  proxy: # optional
+    host: 123.123.123.123
+    port: 123
   logging: # optional
     enable: true
     level: BASIC
