@@ -75,8 +75,14 @@ class OpenAiService @JvmOverloads constructor(
         fun proxy(proxy: Proxy): Builder = apply { this.proxy = proxy }
 
         fun build(): OpenAiService {
-            if (apiKey == null) throw OpenAiException.IllegalArgumentException("\"api-key\" must not be null")
-            return OpenAiService(apiKey!!, baseUrl, timeout, validate, logging, proxy)
+            return OpenAiService(
+                requireNotNull(apiKey) { "\"apiKey\" must not be null" },
+                baseUrl,
+                timeout,
+                validate,
+                logging,
+                proxy
+            )
         }
     }
 

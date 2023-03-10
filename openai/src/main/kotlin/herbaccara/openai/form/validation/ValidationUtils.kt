@@ -1,6 +1,5 @@
 package herbaccara.openai.form.validation
 
-import herbaccara.openai.exception.OpenAiException
 import java.io.File
 import kotlin.reflect.KProperty0
 
@@ -25,7 +24,7 @@ object ValidationUtils {
 
     fun between(field: KProperty0<Number?>, start: Double, end: Double) {
         val value = field.get() ?: return
-        if (value.toDouble() !in start..end) throw OpenAiException.IllegalArgumentException("\"${field.name}\" must be between $start and $end")
+        if (value.toDouble() !in start..end) throw IllegalArgumentException("\"${field.name}\" must be between $start and $end")
     }
 
     fun lessThan(field: KProperty0<String?>, limit: Int) {

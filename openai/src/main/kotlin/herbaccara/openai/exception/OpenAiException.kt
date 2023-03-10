@@ -9,7 +9,4 @@ sealed interface OpenAiException {
         cause: Throwable? = null,
         val error: Error? = null
     ) : RuntimeException(message, cause), OpenAiException
-
-    class IllegalArgumentException(message: String? = null, cause: Throwable? = null) :
-        kotlin.IllegalArgumentException(message, cause), OpenAiException
 }
