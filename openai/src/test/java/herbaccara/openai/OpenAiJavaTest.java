@@ -1,18 +1,31 @@
 package herbaccara.openai;
 
 import herbaccara.openai.form.CreateChatCompletionForm;
+import herbaccara.openai.log.Logging;
+import herbaccara.openai.log.LoggingLevel;
 import herbaccara.openai.model.chat.completion.Message;
 import herbaccara.openai.model.chat.completion.chunk.ChatCompletionChunk;
 import herbaccara.openai.model.model.ListModels;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
 public class OpenAiJavaTest {
 
     final String apiKey = "";
-    final OpenAiService openAiService = new OpenAiService(apiKey);
+
+    final OpenAiService openAiService = OpenAiService.builder()
+            .apiKey(apiKey)
+            .validate(true)
+            .logging(new Logging(true, LoggingLevel.BASIC))
+            .baseUrl("https://api.openai.com")
+            .timeout(Duration.ofSeconds(60))
+            .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("123", 123)))
+            .build();
 
     @Test
     public void createChatCompletions() throws InterruptedException {

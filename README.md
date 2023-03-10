@@ -44,7 +44,16 @@ dependencies {
 ## To use
 ```java
 // java
-final OpenAiService openAiService = new OpenAiService(apiKey);
+final OpenAiService openAiService = OpenAiService
+        .builder()
+        .apiKey(apiKey)
+        .validate(true)
+        .logging(new Logging(true, LoggingLevel.BASIC))
+        .baseUrl("https://api.openai.com")
+        .timeout(Duration.ofSeconds(30))
+        .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)))
+        .build();
+
 final ListModels listModels = openAiService.listModels();
 ```
 

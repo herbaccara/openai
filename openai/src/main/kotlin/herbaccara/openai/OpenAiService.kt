@@ -45,45 +45,21 @@ import java.net.Proxy
 import java.time.Duration
 import java.util.function.Consumer
 
-class OpenAiService {
+class OpenAiService @JvmOverloads constructor(
+    apiKey: String,
+    baseUrl: String = BASE_URL,
+    timeout: Duration = DEFAULT_TIMEOUT,
+    private val validate: Boolean = false,
+    logging: Logging = Logging(),
+    proxy: Proxy? = null
+) {
 
     companion object {
         const val BASE_URL: String = "https://api.openai.com"
         val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(30)
-    }
 
-    @JvmOverloads
-    constructor(
-        apiKey: String,
-        baseUrl: String = BASE_URL,
-        timeout: Duration = DEFAULT_TIMEOUT,
-        validate: Boolean = false,
-        logging: Logging = Logging(),
-        proxy: Proxy? = null
-    ) {
-        client = OkHttpClient.Builder()
-            .proxy(proxy)
-            .addInterceptor(AuthorizationInterceptor(apiKey))
-            .apply {
-                if (logging.enable) {
-                    addInterceptor(
-                        HttpLoggingInterceptor().apply {
-                            level = Level.valueOf(logging.level.name)
-                        }
-                    )
-                }
-            }
-            .readTimeout(timeout)
-            .build()
-
-        openAi = Retrofit.Builder()
-            .client(client)
-            .baseUrl(baseUrl)
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-            .build()
-            .create(OpenAi::class.java)
-
-        this.validate = validate
+        @JvmStatic
+        fun builder(): OpenAiServiceBuilder = OpenAiServiceBuilder()
     }
 
     protected val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
@@ -92,7 +68,6 @@ class OpenAiService {
 
     protected val client: OkHttpClient
     protected val openAi: OpenAi
-    private val validate: Boolean
 
     private fun <T> execute(block: () -> Call<T>): T {
         val call = block()
@@ -331,5 +306,28 @@ class OpenAiService {
 
     private fun Enum<*>?.toRequestBody(contentType: String = "multipart/form-data"): RequestBody? {
         return this?.name?.toRequestBody(contentType.toMediaType())
+    }
+
+    init {
+        client = OkHttpClient.Builder()
+            .proxy(proxy)
+            .addInterceptor(AuthorizationInterceptor(apiKey))
+            .apply {
+                if (logging.enable) {
+                    addInterceptor(
+                        HttpLoggingInterceptor().apply {
+                            level = Level.valueOf(logging.level.name)
+                        }
+                    )
+                }
+            }
+            .readTimeout(timeout)
+            .build()
+        openAi = Retrofit.Builder()
+            .client(client)
+            .baseUrl(baseUrl)
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .build()
+            .create(OpenAi::class.java)
     }
 }
