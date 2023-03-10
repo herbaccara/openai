@@ -1,5 +1,6 @@
 package herbaccara.openai
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -131,8 +132,11 @@ class OpenAiService @JvmOverloads constructor(
             return response.body()!!
         } else {
             val errorStr = response.errorBody()?.string()
-            val error: Error? = errorStr?.let { objectMapper.readValue(errorStr) }
-            throw OpenAiException.HttpErrorException("OpenAi error", error = error)
+            val error: Error? = errorStr?.let {
+                val json = objectMapper.readValue<JsonNode>(it)
+                objectMapper.readValue(json["error"].toString())
+            }
+            throw OpenAiException.HttpErrorException("OpenAi error : ${error?.message ?: "unknown"}", error = error)
         }
     }
 
