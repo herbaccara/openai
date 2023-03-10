@@ -2,8 +2,10 @@ package herbaccara.openai.form
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.toasttab.ksp.builder.annotations.GenerateBuilder
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@GenerateBuilder
 data class CreateFineTuneForm @JvmOverloads constructor(
     @field:JsonProperty("training_file") val trainingFile: String,
     @field:JsonProperty("validation_file") val validationFile: String? = null,
@@ -18,6 +20,12 @@ data class CreateFineTuneForm @JvmOverloads constructor(
     @field:JsonProperty("classification_betas") val classificationBetas: List<Double>? = null,
     val suffix: String? = null
 ) : Form {
+
+    companion object {
+
+        @JvmStatic
+        fun builder(): CreateFineTuneFormBuilder = CreateFineTuneFormBuilder()
+    }
 
     override fun validate() {
         // nothing

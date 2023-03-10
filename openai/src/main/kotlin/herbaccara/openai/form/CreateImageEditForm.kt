@@ -1,9 +1,11 @@
 package herbaccara.openai.form
 
+import com.toasttab.ksp.builder.annotations.GenerateBuilder
 import herbaccara.openai.form.enums.ImageResponseFormat
 import herbaccara.openai.form.validation.ValidationUtils
 import java.io.File
 
+@GenerateBuilder
 data class CreateImageEditForm @JvmOverloads constructor(
     val image: File,
     val mask: File? = null,
@@ -13,6 +15,12 @@ data class CreateImageEditForm @JvmOverloads constructor(
     val responseFormat: ImageResponseFormat? = null,
     val user: String? = null
 ) : Form {
+
+    companion object {
+
+        @JvmStatic
+        fun builder(): CreateImageEditFormBuilder = CreateImageEditFormBuilder()
+    }
 
     override fun validate() {
         ValidationUtils.image(::image)

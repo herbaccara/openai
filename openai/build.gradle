@@ -1,7 +1,22 @@
+plugins {
+    id 'idea'
+    id "com.google.devtools.ksp" version "1.7.22-1.0.8"
+}
+
+idea {
+    module {
+        sourceDirs = sourceDirs + file("build/generated/ksp/main/kotlin") + file("build/generated/ksp/test/kotlin")
+        generatedSourceDirs = generatedSourceDirs + file("build/generated/ksp/main/kotlin") + file("build/generated/ksp/test/kotlin")
+    }
+}
+
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.0.0'
     implementation 'com.squareup.okhttp3:okhttp-sse:4.0.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.0.0'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
+
+    implementation("com.toasttab.ksp.builder:ksp-builder-gen-annotations:0.0.5")
+    ksp("com.toasttab.ksp.builder:ksp-builder-gen-processor:0.0.5")
 }
