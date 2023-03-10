@@ -30,7 +30,7 @@ data class CreateCompletionForm @JvmOverloads constructor(
         ValidationUtils.between(::frequencyPenalty, -2.0, 2.0)
         if (logitBias != null) {
             for ((k, v) in logitBias) {
-                ValidationUtils.between("logitBias.$k", v, -100.0, 100.0)
+                ValidationUtils.between("${::logitBias.name}.$k", v, -100.0, 100.0)
             }
         }
     }
