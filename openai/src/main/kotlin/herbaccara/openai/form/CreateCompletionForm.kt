@@ -20,7 +20,7 @@ data class CreateCompletionForm @JvmOverloads constructor(
     @field:JsonProperty("presence_penalty") val presencePenalty: Double? = null,
     @field:JsonProperty("frequency_penalty") val frequencyPenalty: Double? = null,
     @field:JsonProperty("best_of") val bestOf: Int? = null,
-    @field:JsonProperty("logit_bias") val logitBias: Map<String, Any> = emptyMap(),
+    @field:JsonProperty("logit_bias") val logitBias: Map<String, Int>?,
     val user: String? = null
 ) : Form {
 
@@ -28,5 +28,10 @@ data class CreateCompletionForm @JvmOverloads constructor(
         ValidationUtils.between(::temperature, 0.0, 2.0)
         ValidationUtils.between(::presencePenalty, -2.0, 2.0)
         ValidationUtils.between(::frequencyPenalty, -2.0, 2.0)
+        if (logitBias != null) {
+            for ((k, v) in logitBias) {
+                ValidationUtils.between("logitBias.$k", v, -100.0, 100.0)
+            }
+        }
     }
 }

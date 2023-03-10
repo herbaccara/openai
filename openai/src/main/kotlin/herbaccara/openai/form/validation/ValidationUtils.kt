@@ -23,8 +23,12 @@ object ValidationUtils {
     }
 
     fun between(field: KProperty0<Number?>, start: Double, end: Double) {
-        val value = field.get() ?: return
-        if (value.toDouble() !in start..end) throw IllegalArgumentException("\"${field.name}\" must be between $start and $end")
+        between(field.name, field.get(), start, end)
+    }
+
+    fun between(field: String, value: Number?, start: Double, end: Double) {
+        if (value == null) return
+        if (value.toDouble() !in start..end) throw IllegalArgumentException("\"${field}\" must be between $start and $end")
     }
 
     fun lessThan(field: KProperty0<String?>, limit: Int) {
