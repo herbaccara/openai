@@ -1,5 +1,8 @@
 # OpenAI
-OpenAI
+ 
+OpenAI jvm (java, kotlin) client / spring boot starter openai
+
+The code is written in kotlin, but it's okay to use it in java
 
 Made with API version 2023-3-9.
 
