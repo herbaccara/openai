@@ -1,6 +1,5 @@
 package herbaccara.openai.sse
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
@@ -8,6 +7,7 @@ import java.util.function.Consumer
 
 class CompletionEventSourceListener<T>(
     private val objectMapper: ObjectMapper,
+    private val clazz: Class<T>,
     private val block: Consumer<Event<T>>
 ) : EventSourceListener() {
 
@@ -16,7 +16,7 @@ class CompletionEventSourceListener<T>(
             Event(done = true)
         } else {
             try {
-                val value: T = objectMapper.readValue(data, object : TypeReference<T>() {})
+                val value: T = objectMapper.readValue(data, clazz)
                 Event(id, type, value, false)
             } catch (e: Exception) {
                 println(data)

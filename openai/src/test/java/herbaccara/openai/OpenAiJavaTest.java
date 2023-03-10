@@ -2,10 +2,12 @@ package herbaccara.openai;
 
 import herbaccara.openai.form.CreateChatCompletionForm;
 import herbaccara.openai.model.chat.completion.Message;
+import herbaccara.openai.model.chat.completion.chunk.ChatCompletionChunk;
 import herbaccara.openai.model.model.ListModels;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class OpenAiJavaTest {
 
@@ -19,7 +21,17 @@ public class OpenAiJavaTest {
                 Collections.singletonList(new Message("user", "hello"))
         );
 
-        openAiService.createChatCompletions(form, System.out::println);
+        openAiService.createChatCompletions(form, chatCompletionChunkEvent -> {
+            final ChatCompletionChunk data = chatCompletionChunkEvent.getData();
+            if (data != null) {
+                final String collect = data.getChoices()
+                        .stream()
+                        .map(it -> it.getDelta().getContent())
+                        .collect(Collectors.joining(""));
+
+                System.out.print(collect);
+            }
+        });
 
         Thread.sleep(60 * 1000);
     }

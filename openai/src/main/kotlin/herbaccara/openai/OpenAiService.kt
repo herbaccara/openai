@@ -130,7 +130,10 @@ class OpenAiService {
 
         val factory = EventSources.createFactory(client)
 
-        return factory.newEventSource(request, CompletionEventSourceListener(objectMapper, block))
+        return factory.newEventSource(
+            request,
+            CompletionEventSourceListener(objectMapper, TextCompletion::class.java, block)
+        )
     }
 
     fun createChatCompletion(form: CreateChatCompletionForm): ChatCompletion {
@@ -139,7 +142,10 @@ class OpenAiService {
         return execute { openAi.createChatCompletion(copy) }
     }
 
-    fun createChatCompletions(form: CreateChatCompletionForm, block: Consumer<Event<ChatCompletionChunk>>): EventSource {
+    fun createChatCompletions(
+        form: CreateChatCompletionForm,
+        block: Consumer<Event<ChatCompletionChunk>>
+    ): EventSource {
         val copy = form.copy(stream = true)
         if (validate) copy.validate()
 
@@ -152,7 +158,10 @@ class OpenAiService {
 
         val factory = EventSources.createFactory(client)
 
-        return factory.newEventSource(request, CompletionEventSourceListener(objectMapper, block))
+        return factory.newEventSource(
+            request,
+            CompletionEventSourceListener(objectMapper, ChatCompletionChunk::class.java, block)
+        )
     }
 
     fun createEdit(form: CreateEditForm): Edit {
