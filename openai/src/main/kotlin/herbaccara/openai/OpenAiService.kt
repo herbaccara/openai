@@ -53,13 +53,51 @@ class OpenAiService @JvmOverloads constructor(
     logging: Logging = Logging(),
     proxy: Proxy? = null
 ) {
+    class Builder {
+
+        private var apiKey: String? = null
+        private var baseUrl: String = BASE_URL
+        private var timeout: Duration = DEFAULT_TIMEOUT
+        private var validate: Boolean = false
+        private var logging: Logging = Logging()
+        private var proxy: Proxy? = null
+
+        fun apiKey(apiKey: String): Builder {
+            return apply { this.apiKey = apiKey }
+        }
+
+        fun baseUrl(baseUrl: String): Builder {
+            return apply { this.baseUrl = baseUrl }
+        }
+
+        fun timeout(timeout: Duration): Builder {
+            return apply { this.timeout = timeout }
+        }
+
+        fun validate(validate: Boolean): Builder {
+            return apply { this.validate = validate }
+        }
+
+        fun logging(logging: Logging): Builder {
+            return apply { this.logging = logging }
+        }
+
+        fun proxy(proxy: Proxy): Builder {
+            return apply { this.proxy = proxy }
+        }
+
+        fun build(): OpenAiService {
+            if (apiKey == null) throw OpenAiException.IllegalArgumentException("\"api-key\" must not be null")
+            return OpenAiService(apiKey!!, baseUrl, timeout, validate, logging, proxy)
+        }
+    }
 
     companion object {
         const val BASE_URL: String = "https://api.openai.com"
         val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(30)
 
         @JvmStatic
-        fun builder(): OpenAiServiceBuilder = OpenAiServiceBuilder()
+        fun builder(): Builder = Builder()
     }
 
     protected val objectMapper: ObjectMapper = jacksonObjectMapper().apply {
