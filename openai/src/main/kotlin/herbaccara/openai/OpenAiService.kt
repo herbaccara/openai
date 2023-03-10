@@ -62,29 +62,17 @@ class OpenAiService @JvmOverloads constructor(
         private var logging: Logging = Logging()
         private var proxy: Proxy? = null
 
-        fun apiKey(apiKey: String): Builder {
-            return apply { this.apiKey = apiKey }
-        }
+        fun apiKey(apiKey: String): Builder = apply { this.apiKey = apiKey }
 
-        fun baseUrl(baseUrl: String): Builder {
-            return apply { this.baseUrl = baseUrl }
-        }
+        fun baseUrl(baseUrl: String): Builder = apply { this.baseUrl = baseUrl }
 
-        fun timeout(timeout: Duration): Builder {
-            return apply { this.timeout = timeout }
-        }
+        fun timeout(timeout: Duration): Builder = apply { this.timeout = timeout }
 
-        fun validate(validate: Boolean): Builder {
-            return apply { this.validate = validate }
-        }
+        fun validate(validate: Boolean): Builder = apply { this.validate = validate }
 
-        fun logging(logging: Logging): Builder {
-            return apply { this.logging = logging }
-        }
+        fun logging(logging: Logging): Builder = apply { this.logging = logging }
 
-        fun proxy(proxy: Proxy): Builder {
-            return apply { this.proxy = proxy }
-        }
+        fun proxy(proxy: Proxy): Builder = apply { this.proxy = proxy }
 
         fun build(): OpenAiService {
             if (apiKey == null) throw OpenAiException.IllegalArgumentException("\"api-key\" must not be null")
@@ -106,6 +94,29 @@ class OpenAiService @JvmOverloads constructor(
 
     protected val client: OkHttpClient
     protected val openAi: OpenAi
+
+    init {
+        client = OkHttpClient.Builder()
+            .proxy(proxy)
+            .addInterceptor(AuthorizationInterceptor(apiKey))
+            .apply {
+                if (logging.enable) {
+                    addInterceptor(
+                        HttpLoggingInterceptor().apply {
+                            level = Level.valueOf(logging.level.name)
+                        }
+                    )
+                }
+            }
+            .readTimeout(timeout)
+            .build()
+        openAi = Retrofit.Builder()
+            .client(client)
+            .baseUrl(baseUrl)
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+            .build()
+            .create(OpenAi::class.java)
+    }
 
     private fun <T> execute(block: () -> Call<T>): T {
         val call = block()
@@ -344,28 +355,5 @@ class OpenAiService @JvmOverloads constructor(
 
     private fun Enum<*>?.toRequestBody(contentType: String = "multipart/form-data"): RequestBody? {
         return this?.name?.toRequestBody(contentType.toMediaType())
-    }
-
-    init {
-        client = OkHttpClient.Builder()
-            .proxy(proxy)
-            .addInterceptor(AuthorizationInterceptor(apiKey))
-            .apply {
-                if (logging.enable) {
-                    addInterceptor(
-                        HttpLoggingInterceptor().apply {
-                            level = Level.valueOf(logging.level.name)
-                        }
-                    )
-                }
-            }
-            .readTimeout(timeout)
-            .build()
-        openAi = Retrofit.Builder()
-            .client(client)
-            .baseUrl(baseUrl)
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-            .build()
-            .create(OpenAi::class.java)
     }
 }
