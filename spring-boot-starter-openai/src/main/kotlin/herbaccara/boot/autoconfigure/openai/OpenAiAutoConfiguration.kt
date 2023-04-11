@@ -1,6 +1,7 @@
 package herbaccara.boot.autoconfigure.openai
 
 import herbaccara.openai.OpenAiService
+import herbaccara.openai.log.Logging
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,7 +30,7 @@ class OpenAiAutoConfiguration {
             properties.rootUri,
             properties.timeout,
             properties.validate,
-            properties.logging,
+            properties.logging.let { Logging(it.enable, it.level) },
             proxy
         )
     }
